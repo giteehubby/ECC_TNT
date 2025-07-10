@@ -225,7 +225,7 @@ class Context():
 class memo_doct_agent():
     def __init__(self,src_lang, tgt_lang, context_window, retriever,chat_message,
                  src_summary_tpl, tgt_summary_tpl, src_merge_tpl, tgt_merge_tpl,
-                 extract_tpl,trans_tpl,retrive_tpl,long_window) -> None:
+                 extract_tpl,trans_tpl,long_window,retrive_tpl:str='') -> None:
         self.src_lang = src_lang
         self.tgt_lang = tgt_lang
         self.chat_message = chat_message
@@ -352,17 +352,3 @@ class memo_doct_agent():
 
 
 
-with open('prompts/zh-en/tgt_summary_prompt.txt','r') as src_summary_tpt_f:
-    src_summary_tpl = src_summary_tpt_f.read()
-with open('prompts/zh-en/tgt_summary_prompt.txt','r') as tgt_summary_tpt_f:
-    tgt_summary_tpl = tgt_summary_tpt_f.read()
-with open('prompts/zh-en/src_merge_prompt.txt','r') as src_merge_tpt_f:
-    src_merge_tpl = src_merge_tpt_f.read()
-with open('prompts/zh-en/tgt_merge_prompt.txt','r') as tgt_merge_tpt_f:
-    tgt_merge_tpl = tgt_merge_tpt_f.read()  
-with open('prompts/zh-en/history_prompt.txt','r') as extract__tpt_f:
-    extract_tpl = extract__tpt_f.read() 
-with open('prompts/trans_summary_long_context_history_prompt.txt','r') as trans_tpt_f:
-    translate_tpl = trans_tpt_f.read() 
-
-mt_agent = memo_doct_agent('zh','en',3,'embedding',chat_doubao,src_summary_tpl, tgt_summary_tpl, src_merge_tpl, tgt_merge_tpl,extract_tpl,translate_tpl)
