@@ -32,7 +32,7 @@ class EmbeddingDict():
         self.total = total
     
     def insert(self, new_src: str, new_tgt: str) -> None:
-        if self.total == -1 or len(self.embedding_list) < self.total:
+        if self.total == -1 or len(self.src_text_list) < self.total:
             # total==-1:保存所有的句子并从中检索 
             self.src_text_list.append(new_src)
             self.tgt_text_list.append(new_tgt)
@@ -42,6 +42,9 @@ class EmbeddingDict():
     
     def match(self, query: str, num: int) -> Tuple[list[str]]:
         if len(self.embedding_list) <= num:
+            if len(self.embedding_list) <self.total:
+                query_embedding = get_embedding(query)
+                self.embedding_list.append(query_embedding)
             return (self.src_text_list, self.tgt_text_list)
         query_embedding = get_embedding(query)
         sim_list = [cosine_similarity(query_embedding, embedding) for embedding in self.embedding_list]
@@ -49,7 +52,8 @@ class EmbeddingDict():
 
         idx_list = list(range(len(sim_list)))
         idx_list.sort(key=lambda x: sim_list[x], reverse=True)
-
+        # import pdb
+        # pdb.set_trace()
         if self.total == -1 or len(self.embedding_list) < self.total:
             self.embedding_list.append(query_embedding)
         else:
@@ -301,20 +305,15 @@ class memo_doct_agent():
 
         gen = self.chat_message(prompt)
 
-        return gen if gen else ''
+        return (gen,prompt) if gen else ('',prompt)
 
     def translate_sentences(self,sentences,retrive_top_k,summary_step,only_relative:bool=True,output_file:str='./temp.json'):
         trans_records = []
         for idx,src_sentence in enumerate(tqdm(sentences)):
             
             record = dict()
-
-            long_mem_srcs, long_mem_tgts = None, None
-            src_summary, tgt_summary = None, None
-            hist_info = None
-            src_context, tgt_context = None, None
-
-            
+            # import pdb
+            # pdb.set_trace()
             long_mem_srcs, long_mem_tgts = self.long_memory.match(src_sentence, retrive_top_k)
             long_mem_srcs, long_mem_tgts = deepcopy(long_mem_srcs), deepcopy(long_mem_tgts)
 
@@ -325,11 +324,12 @@ class memo_doct_agent():
 
             src_context, tgt_context = self.short_memory.get_context()
 
-            result = self.translate(src_sentence, long_mem_srcs, long_mem_tgts, src_summary, tgt_summary, hist_info, src_context, tgt_context, self.short_memory.windows_size, self.translate_template)
+            result, prompt = self.translate(src_sentence, long_mem_srcs, long_mem_tgts, src_summary, tgt_summary, hist_info, src_context, tgt_context, self.short_memory.windows_size, self.translate_template)
 
             record['idx'] = idx
             record['src'] = src_sentence
             record['gen'] = result
+            record['prompt'] = prompt
 
             if (idx + 1) % summary_step == 0:
                 record['new_src_summary'], record['new_tgt_summary'] = self.doc_summary.update_summary(trans_records[-summary_step:])
@@ -351,5 +351,5 @@ class memo_doct_agent():
 
             trans_records.append(record)
             json.dump(trans_records, open(output_file, 'w'), ensure_ascii=False, indent=4)
-
+        return [record['gen'] for record in trans_records]
 

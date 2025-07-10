@@ -41,14 +41,14 @@ def chat_doubao(prompt: str) -> str:
 
 with open('openai_key.key','r') as f:
     openai_key = f.read()
-embedding_client =  OpenAI(api_key=openai_key)
+embedding_client =  Ark(api_key=doubao_key)
 
 def get_embedding(text: str) -> str:
     text = text.replace("\n", " ")
     while True:
         completion = embedding_client.embeddings.create(
                 input=[text],
-                model='text-embedding-3-small'
+                model='doubao-embedding-large-text-250515'
             )
         if completion is not None:
             return completion.data[0].embedding
