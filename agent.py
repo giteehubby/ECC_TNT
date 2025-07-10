@@ -11,11 +11,11 @@ import time
 import os
 
 
-from chat_api import chat_doubao,get_embedding
+from chat_api import get_embedding
 
 # self.chat_message = chat_doubao
 lang_dict = {'zh': 'Chinese', 'ja': 'Japanese', 'en': 'English', 'de': 'German', 'fr': 'French', 'ar': 'Arabic', 'ko': 'Korean'}
-
+SRC_SEP, TGT_SEP = ' ', ' '
 
 def cosine_similarity(a: Union[np.array, list], b: Union[np.array, list]):
     if isinstance(a, list):
@@ -160,9 +160,10 @@ class Summary():
         return (self.src_summary, self.tgt_summary)
     
 class Noun_Record():
-    def __init__(self, prompt_template: str, src_lang: str, tgt_lang: str) -> None:
+    def __init__(self, chat_message, prompt_template: str, src_lang: str, tgt_lang: str) -> None:
         self.src_lang = src_lang
         self.tgt_lang = tgt_lang
+        self.chat_message = chat_message
         self.entity_dict = dict()
         self.prompt_template = prompt_template
 
@@ -242,23 +243,20 @@ class memo_doct_agent():
         
         self.doc_summary = Summary(chat_message, src_summary_tpl, tgt_summary_tpl, src_merge_tpl, tgt_merge_tpl)
 
-        self.noun_record = Noun_Record(extract_tpl, src_lang, tgt_lang)
+        self.noun_record = Noun_Record(chat_message, extract_tpl, src_lang, tgt_lang)
 
         self.translate_template = trans_tpl
 
     def translate(self,
-        src_lang: str, tgt_lang:str,
         src_text: str,
         rel_src_sents: list[str], rel_tgt_sents: list[str],
         src_summary: str, tgt_summary: str,
-        historical_prompt: str,
+        noun_record: str,
         src_context: list, tgt_context: list, context_window: int,
         prompt_template: str
     ) -> dict:
 
         '''
-        src_lang: 源语言
-        tgt_lang: 目标语言
         src_text: 源语言文本
         rel_src_sents: 相关源语言句子列表（长期记忆）
         rel_tgt_sents: 相关目标语言句子列表（长期记忆）
@@ -273,14 +271,14 @@ class memo_doct_agent():
         else:
             rel_instances = ''
             for rel_src, rel_tgt in zip(rel_src_sents, rel_tgt_sents):
-                rel_instances += f'<{lang_dict[src_lang]} source> {rel_src}\n<{lang_dict[tgt_lang]} translation> {rel_tgt}\n'
+                rel_instances += f'<{lang_dict[self.src_lang]} source> {rel_src}\n<{lang_dict[self.tgt_lang]} translation> {rel_tgt}\n'
             rel_instances = rel_instances.strip()
         if src_summary is None:
             src_summary = 'N/A'
         if tgt_summary is None:
             tgt_summary = 'N/A'
-        if historical_prompt is None or historical_prompt == '':
-            historical_prompt = 'N/A'
+        if noun_record is None or noun_record == '':
+            noun_record = 'N/A'
         if src_context is None or len(src_context) == 0:
             src_context_prompt, tgt_context_prompt = 'N/A', 'N/A'
         else:
@@ -289,13 +287,13 @@ class memo_doct_agent():
             tgt_context_prompt = TGT_SEP.join(tgt_context)
 
         prompt = prompt_template.format(
-            src_lang=lang_dict[src_lang],
-            tgt_lang=lang_dict[tgt_lang],
+            src_lang=lang_dict[self.src_lang],
+            tgt_lang=lang_dict[self.tgt_lang],
             src_summary=src_summary,
             tgt_summary=tgt_summary,
             rel_inst=rel_instances,
             src=src_text,
-            hist_info=historical_prompt,
+            hist_info=noun_record,
             src_context=src_context_prompt,
             tgt_context=tgt_context_prompt,
             context_window=context_window,
@@ -321,12 +319,13 @@ class memo_doct_agent():
             long_mem_srcs, long_mem_tgts = deepcopy(long_mem_srcs), deepcopy(long_mem_tgts)
 
             src_summary, tgt_summary = self.doc_summary.get_summary()
-
+            
+            # 历史专有名词翻译信息
             hist_info = self.noun_record.get_history_dict_string(src_sentence, only_relative)
 
             src_context, tgt_context = self.short_memory.get_context()
 
-            result = self.translate(self.src_lang, self.tgt_lang, src_sentence, long_mem_srcs, long_mem_tgts, src_summary, tgt_summary, hist_info, src_context, tgt_context, self.short_memory.windows_size, self.translate_template)
+            result = self.translate(src_sentence, long_mem_srcs, long_mem_tgts, src_summary, tgt_summary, hist_info, src_context, tgt_context, self.short_memory.windows_size, self.translate_template)
 
             record['idx'] = idx
             record['src'] = src_sentence

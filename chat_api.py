@@ -2,7 +2,7 @@ from volcenginesdkarkruntime import Ark
 import time
 from openai import OpenAI
 
-with open('ark_key','r') as f:
+with open('ark_key.key','r') as f:
     doubao_key = f.read()
 doubao_client = Ark(api_key=doubao_key)
 
@@ -39,7 +39,7 @@ def chat_doubao(prompt: str) -> str:
     response = completion.choices[0].message.content.strip()
     return response
 
-with open('openai_key','r') as f:
+with open('openai_key.key','r') as f:
     openai_key = f.read()
 embedding_client =  OpenAI(api_key=openai_key)
 
