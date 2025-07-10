@@ -9,6 +9,8 @@ from copy import deepcopy
 import random
 import time
 import os
+
+
 from chat_api import chat_doubao,get_embedding
 
 # self.chat_message = chat_doubao
@@ -97,7 +99,9 @@ class RetrieveAgent():
             query=query
         )
 
+
         chosen_ids = self.chat_message(prompt)
+
 
         if chosen_ids is None:
             return ([], [])
@@ -107,9 +111,8 @@ class RetrieveAgent():
             chosen_ids = []
         chosen_ids = [i for i in chosen_ids if type(i) is int and 1 <= i <= len(self.src_text_list)]
         chosen_ids.sort()
+
         return ([self.src_text_list[i-1] for i in chosen_ids], [self.tgt_text_list[i-1] for i in chosen_ids])
-
-
 
 
 
@@ -349,6 +352,5 @@ class memo_doct_agent():
 
             trans_records.append(record)
             json.dump(trans_records, open(output_file, 'w'), ensure_ascii=False, indent=4)
-
 
 
