@@ -305,7 +305,7 @@ class memo_doct_agent():
 
     def translate_sentences(self,sentences,retrive_top_k,summary_step,only_relative:bool=True,output_file:str='./temp.json'):
         trans_records = []
-        for idx,src_sentence in tqdm(enumerate(sentences)):
+        for idx,src_sentence in enumerate(tqdm(sentences)):
             
             record = dict()
 
