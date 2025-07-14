@@ -9,8 +9,9 @@ from copy import deepcopy
 import random
 import time
 import os
-
-
+from chat_api import chat_doubao
+from chat_api import chat_qwen
+from chat_api import chat_deepseek
 from chat_api import get_embedding
 
 # self.chat_message = chat_doubao
@@ -350,6 +351,34 @@ class memo_doct_agent():
             self.short_memory.update(src_sentence, result)
 
             trans_records.append(record)
-            json.dump(trans_records, open(output_file, 'w'), ensure_ascii=False, indent=4)
+            json.dump(trans_records, open(output_file, 'w',encoding='utf-8'), ensure_ascii=False, indent=4)
         return [record['gen'] for record in trans_records]
+
+
+if __name__=='__main__':
+    with open('prompts/zh-en/tgt_summary_prompt.txt', 'r') as src_summary_tpl_f:
+        src_summary_tpl = src_summary_tpl_f.read()
+    with open('prompts/zh-en/tgt_summary_prompt.txt', 'r') as tgt_summary_tpl_f:
+        tgt_summary_tpl = tgt_summary_tpl_f.read()
+    with open('prompts/zh-en/src_merge_prompt.txt', 'r', encoding='utf-8') as src_merge_tpl_f:
+        src_merge_tpl = src_merge_tpl_f.read()
+    with open('prompts/zh-en/tgt_merge_prompt.txt', 'r') as tgt_merge_tpl_f:
+        tgt_merge_tpl = tgt_merge_tpl_f.read()
+    with open('prompts/zh-en/history_prompt.txt', 'r', encoding='utf-8') as extract_tpl_f:
+        extract_tpl = extract_tpl_f.read()
+    with open('prompts/trans_summary_long_context_history_prompt.txt', 'r') as trans_tpl_f:
+        translate_tpl = trans_tpl_f.read()
+    with open('prompts/retrieve_prompt.txt', 'r', encoding='utf-8') as retrieve_tpl_f:
+        retrieve_tpl = retrieve_tpl_f.read()
+
+    mt_agent = memo_doct_agent('zh', 'en', 3, 'embedding', chat_doubao, src_summary_tpl, tgt_summary_tpl, src_merge_tpl,
+                               tgt_merge_tpl, extract_tpl, translate_tpl, 20)
+
+    with open('data/0.chs_re.txt', 'r', encoding='utf-8') as f:
+        src_text_list = f.readlines()
+    results = mt_agent.translate_sentences(src_text_list, 20, 10, True, './doubao_embedding_res.json')
+    with open('output_doubao.txt', 'a', encoding='utf-8') as file:
+      # for result in results :
+      #   file.write(result)
+        file.write('\n'.join(results))
 
