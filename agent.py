@@ -143,6 +143,8 @@ class Summary():
         
         src_para = SRC_SEP.join(src_list)
         gen_para = TGT_SEP.join(gen_list)
+        # import pdb
+        # pdb.set_trace()
         
         prompt = self.src_gen_template.format(src_para=src_para)
         new_src_summary = self.chat_message(prompt)
@@ -189,7 +191,8 @@ class Noun_Record():
                     src_ent = src_ent.replace('\"', '').replace('\'', '')
                     tgt_ent = tgt_ent.replace('\"', '').replace('\'', '')
                     if self.entity_dict.get(src_ent, '') == '':
-                        self.entity_dict[src_ent] = tgt_ent if tgt_ent != 'N/A' else src_ent
+                        if tgt_ent != 'N/A':
+                            self.entity_dict[src_ent] = tgt_ent
                     elif self.entity_dict[src_ent] != tgt_ent:
                         conflicts.append(f'"{src_ent}" - "{self.entity_dict[src_ent]}"/"{tgt_ent}"')
         return conflicts
@@ -304,7 +307,7 @@ class memo_doct_agent():
             context_window=context_window,
         )
 
-        gen = self.chat_message(prompt)
+        gen = self.chat_message(prompt).replace('\n','')
 
         return (gen,prompt) if gen else ('',prompt)
 
@@ -356,7 +359,7 @@ class memo_doct_agent():
 
 
 if __name__=='__main__':
-    with open('prompts/zh-en/tgt_summary_prompt.txt', 'r') as src_summary_tpl_f:
+    with open('prompts/zh-en/src_summary_prompt.txt', 'r', encoding='utf-8') as src_summary_tpl_f:
         src_summary_tpl = src_summary_tpl_f.read()
     with open('prompts/zh-en/tgt_summary_prompt.txt', 'r') as tgt_summary_tpl_f:
         tgt_summary_tpl = tgt_summary_tpl_f.read()
@@ -376,9 +379,7 @@ if __name__=='__main__':
 
     with open('data/0.chs_re.txt', 'r', encoding='utf-8') as f:
         src_text_list = f.readlines()
-    results = mt_agent.translate_sentences(src_text_list, 20, 10, True, './doubao_embedding_res.json')
-    with open('output_doubao.txt', 'a', encoding='utf-8') as file:
-      # for result in results :
-      #   file.write(result)
+    results = mt_agent.translate_sentences(src_text_list, 2, 10, True, './doubao_embedding_res.json')
+    with open('output_doubao.txt', 'w', encoding='utf-8') as file:
         file.write('\n'.join(results))
 
