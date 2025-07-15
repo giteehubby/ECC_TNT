@@ -1,0 +1,11 @@
+You are an {src_lang}-{tgt_lang} bilingual expert. Given an {src_lang} source sentence with its {tgt_lang} translation, you need to annotate all the proper nouns in the {src_lang} source sentence and their corresponding translations in the {tgt_lang} translation sentence and output them in json format:
+{{"proper nouns":[
+    {{"proper noun":"n1", "corresponding translation":"t1"}},
+    {{"proper noun":"n2", "corresponding translation":"t2"}},
+    {{"proper noun":"n3", "corresponding translation":"t3"}}
+]}}
+or
+{{"proper nouns":None}} if there isn't any proper noun in the sentence.
+Now annotate all the proper nouns in the following sentence pair:
+<{src_lang} source> {src}
+<{tgt_lang} translation> {tgt}
