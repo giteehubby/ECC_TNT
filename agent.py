@@ -13,6 +13,7 @@ from chat_api import chat_doubao
 from chat_api import chat_qwen
 from chat_api import chat_deepseek
 from chat_api import get_embedding
+from LTCR import extract_last_json
 
 # self.chat_message = chat_doubao
 lang_dict = {'zh': 'Chinese', 'ja': 'Japanese', 'en': 'English', 'de': 'German', 'fr': 'French', 'ar': 'Arabic', 'ko': 'Korean'}
@@ -182,20 +183,23 @@ class Noun_Record():
             tgt=tgt
         )
         new_info = self.chat_message(prompt)
+        new_info = extract_last_json(new_info, key_word='proper nouns')
+
+        # print(f'src:\n\t{src_sentence}\ntgt:\n\t{tgt_sentence}\nnew_info:\n\t{new_info}')
+        print(f'prompt:\n\t{prompt}\nnew_info:\n\t{new_info}')
         conflicts = list()
-        if new_info is not None and new_info not in ['N/A', 'None', '', '无']:
-            new_proper_noun_pairs = new_info.split(', ')
-            for ent_pair in new_proper_noun_pairs:
-                if len(ent_pair.split(' - ')) == 2:
-                    src_ent, tgt_ent = ent_pair.split(' - ')
-                    src_ent = src_ent.replace('\"', '').replace('\'', '')
-                    tgt_ent = tgt_ent.replace('\"', '').replace('\'', '')
-                    if self.entity_dict.get(src_ent, '') == '':
-                        if tgt_ent != 'N/A':
-                            self.entity_dict[src_ent] = tgt_ent
-                    elif self.entity_dict[src_ent] != tgt_ent:
-                        conflicts.append(f'"{src_ent}" - "{self.entity_dict[src_ent]}"/"{tgt_ent}"')
-        return conflicts
+        if new_info is not None:
+            new_proper_noun_pairs = new_info['proper nouns']
+            for ent_pair in new_proper_noun_pairs:                
+                src_ent, tgt_ent = ent_pair['proper noun'], ent_pair['corresponding translation']
+                if self.entity_dict.get(src_ent, '') == '':
+                    self.all_records[src_ent] = [tgt_ent,]
+                    if tgt_ent != 'N/A' or tgt_ent is not None or tgt_ent != '':
+                        self.entity_dict[src_ent] = tgt_ent
+                else: # self.first_record[src_ent] != tgt_ent:
+                    conflicts.append(f'"{src_ent}" - "{self.entity_dict[src_ent]}"/"{tgt_ent}"')
+        return conflicts            
+
     
     def get_history_dict_string(self, sentence: str, only_relative: bool) -> str:
         if only_relative:
