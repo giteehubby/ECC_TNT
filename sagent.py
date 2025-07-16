@@ -349,16 +349,16 @@ class memo_doct_agent_s():
 
 
 if __name__=='__main__':
-    with open('prompts/zh-en/src_direct_summary_prompt.txt', 'r', encoding='utf-8') as src_summary_tpl_f:
+    with open('prompts/zh_direct_summary_prompt.txt', 'r', encoding='utf-8') as src_summary_tpl_f:
         src_summary_tpl = src_summary_tpl_f.read()
-    with open('prompts/zh-en/tgt_direct_summary_prompt.txt', 'r') as tgt_summary_tpl_f:
+    with open('prompts/en_direct_summary_prompt.txt', 'r') as tgt_summary_tpl_f:
         tgt_summary_tpl = tgt_summary_tpl_f.read()
     with open('prompts/history_prompt_json.txt', 'r', encoding='utf-8') as extract_tpl_f:
         extract_tpl = extract_tpl_f.read()
     with open('prompts/trans_summary_long_context_history_prompt.txt', 'r') as trans_tpl_f:
         translate_tpl = trans_tpl_f.read()
-    with open('prompts/retrieve_prompt.txt', 'r', encoding='utf-8') as retrieve_tpl_f:
-        retrieve_tpl = retrieve_tpl_f.read()
+    # with open('prompts/retrieve_prompt.txt', 'r', encoding='utf-8') as retrieve_tpl_f:
+    #     retrieve_tpl = retrieve_tpl_f.read()
 
     mt_sagent = memo_doct_agent_s(
         'zh', 'en', 3, 'embedding', chat_doubao, 
