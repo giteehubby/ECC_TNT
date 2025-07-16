@@ -90,7 +90,7 @@ if 'summary_step' not in st.session_state:
 with st.sidebar:
     st.header("⚙️ 系统配置")
 
-     # 模型选择
+    # 模型选择
     st.subheader("📄 模型选择")
     model_options = ["doubao-seed-1-6-250615", "deepseek-r1-250528", "Qwen2.5-0.5B-Instruct"]
     model = st.selectbox(
@@ -209,7 +209,7 @@ translate_btn = st.button("开始翻译", key="translate_btn", type="primary")
 st.markdown('</div>', unsafe_allow_html=True)
 
 lang_dict = {"英语":'en', "中文":'zh', "法语":'fr', "德语":'de', "日语":'ja'}
-
+# context_window = 20
 src_lang=lang_dict[src_lang]
 tgt_lang=lang_dict[tgt_lang]
 with open('prompts/all_lan_summary_prompts/'+src_lang+'_directly_summary_prompt.txt', 'r', encoding='utf-8') as src_summary_tpl_f:
@@ -237,6 +237,7 @@ if translate_btn:
         with st.spinner("正在翻译，请稍候..."):
             try:
                 start_time = time.time()
+                # 从session_state获取参数值
                 context_window = st.session_state.context_window
                 long_window = st.session_state.long_window
                 retrive_top_k = st.session_state.retrive_top_k
