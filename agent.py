@@ -1,5 +1,5 @@
-from openai import OpenAI
-import argparse
+# from openai import OpenAI
+# import argparse
 import numpy as np
 from numpy.linalg import norm
 import json
@@ -7,8 +7,8 @@ from typing import Tuple, Union
 from tqdm import tqdm
 from copy import deepcopy
 import random
-import time
-import os
+# import time
+# import os
 from chat_api import chat_doubao
 from chat_api import chat_qwen
 from chat_api import chat_deepseek
@@ -371,7 +371,7 @@ if __name__=='__main__':
         src_merge_tpl = src_merge_tpl_f.read()
     with open('prompts/zh-en/tgt_merge_prompt.txt', 'r') as tgt_merge_tpl_f:
         tgt_merge_tpl = tgt_merge_tpl_f.read()
-    with open('prompts/zh-en/history_prompt.txt', 'r', encoding='utf-8') as extract_tpl_f:
+    with open('prompts/history_prompt_json.txt', 'r', encoding='utf-8') as extract_tpl_f:
         extract_tpl = extract_tpl_f.read()
     with open('prompts/trans_summary_long_context_history_prompt.txt', 'r') as trans_tpl_f:
         translate_tpl = trans_tpl_f.read()
