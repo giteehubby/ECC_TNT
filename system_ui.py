@@ -266,24 +266,21 @@ if translate_btn:
                     # print(current_translation)
                     # 更新session状态
                     st.session_state.translated_text = current_translation
-                    
-                    realtime_placeholder.text_area(
-                        "实时翻译进度",
-                        value=current_translation,
-                        height=300,
-                        key=f"realtime_translation_{i}",  # 使用动态key
-                        disabled=True
-                    )
-                # translated_text = '\n'.join(mt_agent2.translate_sentences(st.session_state.source_text.split('\n'), 2, 10, True,
-                #                                   model + '_emdedding1' + '.json'))
+                    if current_translation:
+                        realtime_placeholder.text_area(
+                            "实时翻译进度",
+                            value=current_translation,
+                            height=300,
+                            key=f"realtime_translation_{i}",  # 使用动态key
+                            disabled=True
+                        )
+
 
                 processing_time = time.time() - start_time
                 # 翻译完成后，清空实时占位符
                 realtime_placeholder.empty()
                 progress_bar.empty()
 
-
-                st.session_state.translated_text = translated_text
 
                 # 显示翻译信息
                 st.markdown('<div class="metric-card">', unsafe_allow_html=True)
@@ -308,3 +305,5 @@ st.markdown("""
         技术支持: 火山引擎ARK SDK
     </div>
 """, unsafe_allow_html=True)
+
+# streamlit run system_ui.py

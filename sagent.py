@@ -163,6 +163,8 @@ class Noun_Record():
         self.prompt_template = prompt_template
 
     def extract_entity(self, src: str, tgt: str) -> list[str]:
+        if src is None or src == '':
+            return []
         prompt = self.prompt_template.format(
             src_lang=lang_dict[self.src_lang],
             tgt_lang=lang_dict[self.tgt_lang],
@@ -212,6 +214,8 @@ class Context():
         self.tgt_context = []
     
     def update(self, src: str, tgt: str) -> None:
+        if src is None or src == '':
+            return
         if self.windows_size == -1:
             # 无限长的上下文
             self.src_context.append(src)
@@ -264,6 +268,8 @@ class memo_doct_agent_s():
         src_context: 源语言上下文（短期记忆）
         tgt_context: 翻译结果上下文（短期记忆）
         '''
+        if src_text is None or src_text == '':
+            return ('', 'N/A')
         if rel_src_sents is None or len(rel_src_sents) == 0:
             rel_instances = 'N/A'
         else:
@@ -304,7 +310,11 @@ class memo_doct_agent_s():
     def translate_sentences(self,sentences,retrive_top_k,summary_step,only_relative:bool=True,output_file:str='./temp.json'):
         trans_records = []
         for idx,src_sentence in enumerate(tqdm(sentences)):
-            
+            if src_sentence is None or src_sentence == '':
+                record = {'idx': idx, 'src': src_sentence, 'gen': '', 'prompt': ''}
+                trans_records.append(record)
+                json.dump(trans_records, open(output_file, 'w',encoding='utf-8'), ensure_ascii=False, indent=4)
+                continue
             record = dict()
             # import pdb
             # pdb.set_trace()
@@ -350,7 +360,12 @@ class memo_doct_agent_s():
     def translate_stream(self,sentences,retrive_top_k,summary_step,only_relative:bool=True,output_file:str='./temp.json'):
         trans_records = []
         for idx,src_sentence in enumerate(tqdm(sentences)):
-            
+            if src_sentence is None or src_sentence == '':
+                record = {'idx': idx, 'src': src_sentence, 'gen': '', 'prompt': ''}
+                trans_records.append(record)
+                json.dump(trans_records, open(output_file, 'w',encoding='utf-8'), ensure_ascii=False, indent=4)
+                yield [record['gen'] for record in trans_records]
+                continue
             record = dict()
             # import pdb
             # pdb.set_trace()
