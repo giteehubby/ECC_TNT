@@ -62,34 +62,6 @@ def clean_response(response):
     cleaned = re.sub(r'[。！？：；,.!?:;]+$', '', cleaned)
     return cleaned.strip()
 
-def translate_with_doubao(text, src_lang, tgt_lang, api_key):
-    """使用火山引擎API进行翻译"""
-    try:
-        client = Ark(api_key=api_key)
-
-        lang_map = {
-            "中文": "Chinese",
-            "英语": "English",
-            "法语": "French",
-            "西班牙语": "Spanish",
-            "日语": "Japanese"
-        }
-
-        completion = client.chat.completions.create(
-            model="doubao-seed-1-6-250615",
-            messages=[
-                {"role": "system",
-                 "content": f"你是一位精通{lang_map[src_lang]}和{lang_map[tgt_lang]}的专业翻译，擅长将{lang_map[src_lang]}小说翻译成{lang_map[tgt_lang]}。请保持原文风格。"},
-                {"role": "user", "content": text}
-            ],
-            thinking={"type": "auto"}
-        )
-
-        return clean_response(completion.choices[0].message.content)
-
-    except Exception as e:
-        logger.error(f"火山引擎翻译失败: {str(e)}")
-        raise
 
 # 初始化session state
 if 'translated_text' not in st.session_state:
@@ -104,12 +76,22 @@ if 'api_config' not in st.session_state:
         "model": "doubao-seed-1-6-250615",
         "api_key": ""
     }
+# 新增三个参数的session state
+if 'context_window' not in st.session_state:
+    st.session_state.context_window = 3
+if 'long_window' not in st.session_state:
+    st.session_state.long_window = 20
+if 'retrive_top_k' not in st.session_state:
+    st.session_state.retrive_top_k = 2
+if 'summary_step' not in st.session_state:
+    st.session_state.summary_step = 10
 
 # 侧边栏配置
 with st.sidebar:
     st.header("⚙️ 系统配置")
 
     # 模型选择
+    st.subheader("📄 模型选择")
     model_options = ["doubao-seed-1-6-250615", "deepseek-r1-250528", "Qwen2.5-0.5B-Instruct"]
     model = st.selectbox(
         "翻译模型",
@@ -118,27 +100,8 @@ with st.sidebar:
         help="选择使用的翻译模型"
     )
 
-    # # API密钥
-    # api_key = st.text_input(
-    #     "API密钥",
-    #     value=st.session_state.api_config["api_key"],
-    #     type="password",
-    #     help="火山引擎ARK SDK所需的API密钥"
-    # )
-    #
-    # # 保存配置
-    # if st.button("保存配置"):
-    #     st.session_state.api_config = {
-    #         "url": "https://ark.volcengineapi.com",
-    #         "model": model,
-    #         "api_key": api_key
-    #     }
-    #     st.success("配置已保存!")
-    #
-    # st.divider()
-
     # 文件上传
-    st.header("📁 文件翻译")
+    st.subheader("📁 文件翻译")
     uploaded_file = st.file_uploader(
         "上传文件进行翻译",
         type=["txt"],
@@ -148,6 +111,48 @@ with st.sidebar:
     if uploaded_file is not None:
         st.session_state.source_text = uploaded_file.getvalue().decode("utf-8")
         st.success("文本文件内容已加载!")
+
+        # 新增参数调整区域
+    st.subheader("🔧 高级参数")
+    context_window = st.slider(
+        "短期记忆 (context_window)",
+        min_value=1,
+        max_value=20,
+        value=st.session_state.context_window,
+        step=1,
+        help="控制翻译时考虑的上下文范围大小"
+    )
+    st.session_state.context_window = context_window
+
+    long_window = st.slider(
+        "长期记忆 (long_window)",
+        min_value=10,
+        max_value=50,
+        value=st.session_state.long_window,
+        step=1,
+        help="控制翻译时考虑的上下文范围大小"
+    )
+    st.session_state.context_window = context_window
+
+    retrive_top_k = st.slider(
+        "检索相关句子数 (retrive_top_k)",
+        min_value=1,
+        max_value=20,
+        value=st.session_state.retrive_top_k,
+        step=1,
+        help="设置检索的最相关的句子数量"
+    )
+    st.session_state.retrive_top_k = retrive_top_k
+
+    summary_step = st.slider(
+        "摘要生成步长 (summary_step)",
+        min_value=1,
+        max_value=50,
+        value=st.session_state.summary_step,
+        step=1,
+        help="每翻译多少句子后生成一次摘要"
+    )
+    st.session_state.summary_step = summary_step
 
 # 主界面布局
 col1, col2 = st.columns(2, gap="large")
@@ -204,7 +209,7 @@ translate_btn = st.button("开始翻译", key="translate_btn", type="primary")
 st.markdown('</div>', unsafe_allow_html=True)
 
 lang_dict = {"英语":'en', "中文":'zh', "法语":'fr', "德语":'de', "日语":'ja'}
-context_window = 20
+# context_window = 20
 src_lang=lang_dict[src_lang]
 tgt_lang=lang_dict[tgt_lang]
 with open('prompts/all_lan_summary_prompts/'+src_lang+'_directly_summary_prompt.txt', 'r', encoding='utf-8') as src_summary_tpl_f:
@@ -227,7 +232,11 @@ if translate_btn:
         with st.spinner("正在翻译，请稍候..."):
             try:
                 start_time = time.time()
-
+                # 从session_state获取参数值
+                context_window = st.session_state.context_window
+                long_window = st.session_state.long_window
+                retrive_top_k = st.session_state.retrive_top_k
+                summary_step = st.session_state.summary_step
                 if st.session_state.api_config["model"] == "doubao-seed-1-6-250615":
                     chat_message = chat_doubao
                 elif st.session_state.api_config["model"] == "deepseek-r1-250528":
@@ -236,9 +245,9 @@ if translate_btn:
                     chat_message = chat_qwen
 
                 mt_agent2 = memo_doct_agent_s(src_lang, tgt_lang, context_window, 'embedding', chat_message,
-                                              src_summary_tpl, tgt_summary_tpl, extract_tpl, translate_tpl, 20)
+                                              src_summary_tpl, tgt_summary_tpl, extract_tpl, translate_tpl, long_window)
 
-                translated_text = '\n'.join(mt_agent2.translate_sentences(st.session_state.source_text.split('\n'), 2, 10, True,
+                translated_text = '\n'.join(mt_agent2.translate_sentences(st.session_state.source_text.split('\n'), retrive_top_k, summary_step, True,
                                                   model + '_emdedding1' + '.json'))
 
                 processing_time = time.time() - start_time
