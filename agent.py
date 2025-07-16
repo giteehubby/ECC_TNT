@@ -185,19 +185,18 @@ class Noun_Record():
         new_info = self.chat_message(prompt)
         new_info = extract_last_json(new_info, key_word='proper nouns')
 
-        # print(f'src:\n\t{src_sentence}\ntgt:\n\t{tgt_sentence}\nnew_info:\n\t{new_info}')
-        print(f'prompt:\n\t{prompt}\nnew_info:\n\t{new_info}')
         conflicts = list()
         if new_info is not None:
             new_proper_noun_pairs = new_info['proper nouns']
             for ent_pair in new_proper_noun_pairs:                
                 src_ent, tgt_ent = ent_pair['proper noun'], ent_pair['corresponding translation']
                 if self.entity_dict.get(src_ent, '') == '':
-                    self.all_records[src_ent] = [tgt_ent,]
+                    # self.all_records[src_ent] = [tgt_ent,]
                     if tgt_ent != 'N/A' or tgt_ent is not None or tgt_ent != '':
                         self.entity_dict[src_ent] = tgt_ent
-                else: # self.first_record[src_ent] != tgt_ent:
-                    conflicts.append(f'"{src_ent}" - "{self.entity_dict[src_ent]}"/"{tgt_ent}"')
+                else:
+                    if self.entity_dict[src_ent] != tgt_ent:
+                        conflicts.append(f'"{src_ent}" - "{self.entity_dict[src_ent]}"/"{tgt_ent}"')
         return conflicts            
 
     

@@ -1,0 +1,4 @@
+Voici un résumé du texte précédent ainsi que le paragraphe suivant. Veuillez générer un nouveau résumé en vous basant sur eux.
+Résumé : {summary}
+Paragraphe : {paragraph}
+Nouveau résumé :
