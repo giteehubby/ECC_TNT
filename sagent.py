@@ -346,6 +346,52 @@ class memo_doct_agent_s():
             trans_records.append(record)
             json.dump(trans_records, open(output_file, 'w',encoding='utf-8'), ensure_ascii=False, indent=4)
         return [record['gen'] for record in trans_records]
+    
+    def translate_stream(self,sentences,retrive_top_k,summary_step,only_relative:bool=True,output_file:str='./temp.json'):
+        trans_records = []
+        for idx,src_sentence in enumerate(tqdm(sentences)):
+            
+            record = dict()
+            # import pdb
+            # pdb.set_trace()
+            long_mem_srcs, long_mem_tgts = self.long_memory.match(src_sentence, retrive_top_k)
+            long_mem_srcs, long_mem_tgts = deepcopy(long_mem_srcs), deepcopy(long_mem_tgts)
+
+            src_summary, tgt_summary = self.doc_summary.get_summary()
+            
+            # 历史专有名词翻译信息
+            hist_info = self.noun_record.get_history_dict_string(src_sentence, only_relative)
+
+            src_context, tgt_context = self.short_memory.get_context()
+
+            result, prompt = self.translate(src_sentence, long_mem_srcs, long_mem_tgts, src_summary, tgt_summary, hist_info, src_context, tgt_context, self.short_memory.windows_size, self.translate_template)
+
+            record['idx'] = idx
+            record['src'] = src_sentence
+            record['gen'] = result
+            record['prompt'] = prompt
+
+            if (idx + 1) % summary_step == 0:
+                record['new_src_summary'], record['new_tgt_summary'] = self.doc_summary.update_summary(trans_records[-summary_step:])
+
+            self.long_memory.insert(src_sentence, result)
+
+            conflict_list = self.noun_record.extract_entity(src_sentence, result)
+                # new_ents = result['New proper nouns']
+            if only_relative:
+                # 提取到的与当前句子相关的实体
+                record['hist_info'] = hist_info
+            record['entity_dict'] = self.noun_record.get_history_dict()
+                # conflict_list = ent_history.update_history(new_ents)
+            if len(conflict_list) > 0:
+                record['conflict'] = conflict_list
+
+            # 更新短期记忆
+            self.short_memory.update(src_sentence, result)
+
+            trans_records.append(record)
+            json.dump(trans_records, open(output_file, 'w',encoding='utf-8'), ensure_ascii=False, indent=4)
+            yield [record['gen'] for record in trans_records]
 
 
 if __name__=='__main__':
