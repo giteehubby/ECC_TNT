@@ -1,0 +1,4 @@
+Hier ist eine Zusammenfassung des vorherigen Textes zusammen mit dem folgenden Absatz. Bitte erstellen Sie eine neue Zusammenfassung auf Grundlage dieser beiden.
+Zusammenfassung: {summary}
+Absatz: {paragraph}
+Neue Zusammenfassung:
