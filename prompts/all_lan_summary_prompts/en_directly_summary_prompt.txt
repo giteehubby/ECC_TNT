@@ -1,0 +1,4 @@
+Here is a summary of the previous text along with the following paragraph. Please generate a new summary based on them.
+Summary: {summary}
+paragraph: {paragraph}
+New summary:
