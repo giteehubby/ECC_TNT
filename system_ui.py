@@ -6,6 +6,7 @@ from volcenginesdkarkruntime import Ark
 # import json
 import re
 import logging
+from datetime import datetime
 
 from chat_api import chat_doubao, chat_deepseek_api,chat_qwen
 from sagent import memo_doct_agent_s
@@ -34,7 +35,6 @@ st.markdown("""
     .card {
         background: white;
         border-radius: 10px;
-        padding: 1.5rem;
         margin-bottom: 1.5rem;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
@@ -104,7 +104,6 @@ with st.sidebar:
     st.subheader("📁 文件翻译")
     uploaded_file = st.file_uploader(
         "上传文件进行翻译",
-        type=["txt"],
         help="支持文本文件"
     )
 
@@ -200,6 +199,18 @@ with col2:
             disabled=True,
             label_visibility="collapsed"
         )
+        # 新增保存按钮
+        if st.session_state.translated_text:
+            current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"translated_text_{current_time}.txt"
+            st.download_button(
+                label="💾 保存翻译结果",
+                data=st.session_state.translated_text.encode(),
+                file_name=filename,
+                mime="text/plain",
+                use_container_width=True,
+                help="将翻译结果保存为文本文件"
+            )
         st.markdown('</div>', unsafe_allow_html=True)
 
 # 翻译控制区域
