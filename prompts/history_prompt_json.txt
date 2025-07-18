@@ -6,6 +6,6 @@ You are an {src_lang}-{tgt_lang} bilingual expert. Given an {src_lang} source se
 ]}}
 or
 {{"proper nouns":None}} if there isn't any proper noun in the sentence.
-Now annotate all the proper nouns in the following sentence pair:
+Now annotate all proper nouns in the following sentence pair:
 <{src_lang} source> {src}
 <{tgt_lang} translation> {tgt}
